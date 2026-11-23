@@ -7,7 +7,7 @@ const TEMPLATES = { pedido: { name: 'pedido_kijo', fields: ['name', 'code', 'ite
 export default async (req) => {
   if (req.method === 'OPTIONS') return out({ ok: true });
   if (req.method !== 'POST') return out({ ok: false, error: 'Usa POST' }, 405);
-  const token = process.env.WHATSAPP_TOKEN, phoneId = process.env.PHONE_NUMBER_ID;
+  const token = String(process.env.WHATSAPP_TOKEN || '').replace(/[\s"']/g, ''), phoneId = String(process.env.PHONE_NUMBER_ID || '').trim();
   if (!token || !phoneId) return out({ ok: false, error: 'Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID' }, 500);
   const data = await req.json().catch(() => ({}));
   const digits = String(data.phone || '').replace(/\D/g, '');
@@ -22,5 +22,5 @@ export default async (req) => {
   const text = String(data.text || '').slice(0, 4000);
   const t = text ? await send({ type: 'text', text: { body: text, preview_url: true } }) : null;
   if (t && t.ok) return out({ ok: true, via: 'text', id: t.body?.messages?.[0]?.id });
-  return out({ ok: false, error: r.body?.error?.message || 'No se pudo enviar' }, 502);
+  return out({ ok: false, error: r.body?.error?.message || 'No se pudo enviar', clave: { largo: token.length, eaa: token.startsWith('EAA') } }, 502);
 };
