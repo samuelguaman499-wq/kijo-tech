@@ -7,7 +7,7 @@ const TEMPLATES = { pedido: { name: 'pedido_kijo', fields: ['name', 'code', 'ite
 export default async (req) => {
   if (req.method === 'OPTIONS') return out({ ok: true });
   if (req.method !== 'POST') return out({ ok: false, error: 'Usa POST' }, 405);
-  const token = String(process.env.WHATSAPP_TOKEN || '').replace(/[\s"']/g, ''), phoneId = String(process.env.PHONE_NUMBER_ID || '').trim();
+  const rawToken = String(process.env.WHATSAPP_TOKEN || ''), token = (rawToken.match(/EAA[A-Za-z0-9]+/) || [rawToken.replace(/[\s"']/g, '')])[0], phoneId = String(process.env.PHONE_NUMBER_ID || '').trim();
   if (!token || !phoneId) return out({ ok: false, error: 'Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID' }, 500);
   const data = await req.json().catch(() => ({}));
   const digits = String(data.phone || '').replace(/\D/g, '');
